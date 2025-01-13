@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Low-Level Browser APIs</title>
+</head>
+<body>
+  <h1>Низькорівневі API сучасних браузерів</h1>
+
+  <!-- File API -->
+  <section>
+    <h2>1. File API: Завантаження файлу</h2>
+    <input type="file" id="fileInput" />
+    <pre id="fileContent">Зміст файлу з'явиться тут...</pre>
+  </section>
+
+  <!-- WebRTC API -->
+  <section>
+    <h2>2. WebRTC API: Відеозв'язок</h2>
+    <video id="localVideo" autoplay playsinline></video>
+    <p>Доступ до вашої камери через WebRTC API.</p>
+  </section>
+
+  <!-- WebAssembly -->
+  <section>
+    <h2>3. WebAssembly: Обчислення у браузері</h2>
+    <input type="text" id="number1">
+    <input type="text" id="number2">
+    <button id="runWasm">Виконати обчислення в WebAssembly</button>
+    <pre id="wasmOutput">Результат WebAssembly з'явиться тут...</pre>
+
+    <script src="./simple.js"></script>
+  </section>
+
+  <script>
+    // File API
+    document.getElementById('fileInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const text = await file.text();
+        document.getElementById('fileContent').textContent = text;
+      }
+    });
+
+    // WebRTC API
+    async function startVideoStream() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById('localVideo').srcObject = stream;
+      } catch (error) {
+        console.error('Помилка доступу до камери:', error);
+      }
+    }
+    startVideoStream();
+
+    // WebAssembly
+    let api;
+    Module.onRuntimeInitialized = async _ => {
+        api = {
+            calculate: Module.cwrap('addNumbers', 'number', ['number1', 'number2']),
+        };
+    };
+
+    const btn = document.getElementById('runWasm');
+    btn.addEventListener('click', () => {
+        const inputNumber1 = document.getElementById('number1').value;
+        const inputNumber2 = document.getElementById('number2').value;
+        const result = document.getElementById('wasmOutput');
+        result.innerHTML = api.calculate(Number(inputNumber1), Number(inputNumber2));
+        console.log(result);
+    });
+  </script>
+</body>
+</html>
